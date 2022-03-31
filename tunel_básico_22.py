@@ -1,8 +1,14 @@
 # -*- coding: utf-8 -*-
 
 """
-Solution to the one-way tunnel
+Autoras: Claudia Casado Poyatos, Natalia García Domínguez y Olga Rodríguez Acevedo
 """
+
+"""
+Este programa controla el flujo de coches que atraviesan un tunel con el objetivo de que 
+no haya accidentes, ya que éste únicamente permite el paso de vehículos en una dirección.
+"""
+
 import time
 import random
 from multiprocessing import Lock, Condition, Process
@@ -15,11 +21,13 @@ NCARS = 100
 
 class Monitor():
     def __init__(self):
-        self.car_NORTH = Value('i',0) #Num de coches en el norte que estan dentro del tunel y van hacia el sur
-        self.car_SOUTH = Value('i',0) #Num de coches en el sur que  estan dentro del tunel y van hacia el norte
+        self.car_NORTH = Value('i',0) # Número de coches dentro del tunel que vienen del norte y van hacia el sur.
+        self.car_SOUTH = Value('i',0) # Número de coches dentro del tunel que vienen del sur y van hacia el norte.
         self.mutex = Lock()
-        self.no_inside_NORTH = Condition(self.mutex) #Semaforo de los coches que vienen en el norte
-        self.no_inside_SOUTH = Condition(self.mutex) #Semaforo de los coches que vienen en el sur
+        self.no_inside_NORTH = Condition(self.mutex) # Variable condición que asegura el cumplimiento del invariante y que 
+                                                     # se hará cierta si no hay coches que vienen del norte dentro del tunel.
+        self.no_inside_SOUTH = Condition(self.mutex) # Variable condición que asegura el cumplimiento del invariante y que 
+                                                     # se hará cierta si no hay coches que vienen del sur dentro del tunel.
 
     def no_cars_NORTH(self): #No hay coches dentro del tunel que vengan del NORTE
         return self.car_NORTH.value == 0
