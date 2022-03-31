@@ -69,14 +69,14 @@ class Monitor():
         self.no_inside_NORTH.notify_all()
         self.mutex.release()
    
-    #funcion general para entrar depdendiendo de la direccion 
+    # Función genérica que se ejecuta cuando un coche, que viene de una dirección determinada, quiere entrar en el tunel.
     def wants_enter(self, direction):
         if direction == NORTH:
             self.wants_enter_NORTH()
         else:
             self.wants_enter_SOUTH()
 
-    #funcion general para salir dependediendo de la direccion       
+    # Función genérica que se ejecuta cuando un coche, que viene de una dirección determinada, está saliendo del tunel.            
     def leaves_tunnel(self,direction):
         if direction == NORTH:
             self.leaves_tunnel_NORTH()
