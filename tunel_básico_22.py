@@ -29,48 +29,54 @@ class Monitor():
         self.no_inside_SOUTH = Condition(self.mutex) # Variable condición que asegura el cumplimiento del invariante y que 
                                                      # se hará cierta si no hay coches que vienen del sur dentro del tunel.
 
-    def no_cars_NORTH(self): #No hay coches dentro del tunel que vengan del NORTE
+    # Función que indica si no hay coches que vienen del norte dentro del tunel.
+    def no_cars_NORTH(self): 
         return self.car_NORTH.value == 0
    
-    def no_cars_SOUTH(self): #No hay coches dentro del tunel que vengan del SUR
+    # Función que indica si no hay coches que vienen del sur dentro del tunel.
+    def no_cars_SOUTH(self): 
         return self.car_SOUTH.value == 0
 
-#avisa de que quiere entrar desde el sur, se asegura de que no vienen coches del norte y entonces los deja pasar
+    # Función que se ejecuta cuando un coche que viene del sur quiere entrar en el tunel. 
+    # Ésta, además, permite que dicho coche lo atraviese, habiéndose asegurado antes de 
+    # que en el tunel no hay coches que vienen del norte. 
     def wants_enter_SOUTH(self): 
         self.mutex.acquire()    
         self.no_inside_NORTH.wait_for(self.no_cars_NORTH)
         self.car_SOUTH.value += 1
         self.mutex.release()
         
-#avisa de que los coches del sur han salido del tunel     
+    # Función que se ejecuta cuando un coche que viene del sur está saliendo del tunel.   
     def leaves_tunnel_SOUTH(self): 
         self.mutex.acquire()
         self.car_SOUTH.value -= 1
         self.no_inside_SOUTH.notify_all()
         self.mutex.release()
-       
-        
-#avisa de que quiere entrar desde el norte, se asegura de que no vienen coches del sur y entonces los deja pasar    
+      
+    # Función que se ejecuta cuando un coche que viene del norte quiere entrar en el tunel. 
+    # Ésta, además, permite que dicho coche lo atraviese, habiéndose asegurado antes de 
+    # que en el tunel no hay coches que vienen del sur. 
     def wants_enter_NORTH(self):
         self.mutex.acquire()
         self.no_inside_SOUTH.wait_for(self.no_cars_SOUTH)
         self.car_NORTH.value += 1
         self.mutex.release()
-#avisa de que los coches del norte han salido del tunel    
+
+    # Función que se ejecuta cuando un coche que viene del norte está saliendo del tunel.  
     def leaves_tunnel_NORTH(self):
         self.mutex.acquire()
         self.car_NORTH.value -= 1
         self.no_inside_NORTH.notify_all()
         self.mutex.release()
    
-    
-#funcion general  para entrar depdendiendo de la direccion 
+    #funcion general para entrar depdendiendo de la direccion 
     def wants_enter(self, direction):
         if direction == NORTH:
             self.wants_enter_NORTH()
         else:
             self.wants_enter_SOUTH()
-#funcion general para salir dependediendo de la direccion       
+
+    #funcion general para salir dependediendo de la direccion       
     def leaves_tunnel(self,direction):
         if direction == NORTH:
             self.leaves_tunnel_NORTH()
