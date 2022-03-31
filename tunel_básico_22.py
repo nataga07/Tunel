@@ -92,6 +92,10 @@ def car(cid, direction, monitor):
     print(f"car {cid} heading {direction} wants to enter")
     monitor.wants_enter(direction)
     print(f"car {cid} heading {direction} enters the tunnel")
+    if direction == NORTH:
+       delay(3)
+    else:
+       delay(6)
     print(f"car {cid} heading {direction} leaving the tunnel")
     monitor.leaves_tunnel(direction)
     print(f"car {cid} heading {direction} out of the tunnel")
