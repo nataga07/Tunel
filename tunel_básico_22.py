@@ -11,61 +11,58 @@ from multiprocessing import Value
 SOUTH = "north"
 NORTH = "south"
 
-NCARS = 10
+NCARS = 100
 
 class Monitor():
     def __init__(self):
-        self.car_tunnel_NORTH = Value('i',0) #Num de coches en el norte que estan dentro del tunel y van hacia el sur
-        self.car_tunnel_SOUTH = Value('i',0) #Num de coches en el sur que  estan dentro del tunel y van hacia el norte
+        self.car_NORTH = Value('i',0) #Num de coches en el norte que estan dentro del tunel y van hacia el sur
+        self.car_SOUTH = Value('i',0) #Num de coches en el sur que  estan dentro del tunel y van hacia el norte
         self.mutex = Lock()
-        self.sem_NORTH = Condition(self.mutex) #Semaforo de los coches que vienen en el norte
-        self.sem_SOUTH = Condition(self.mutex) #Semaforo de los coches que vienen en el sur
+        self.no_inside_NORTH = Condition(self.mutex) #Semaforo de los coches que vienen en el norte
+        self.no_inside_SOUTH = Condition(self.mutex) #Semaforo de los coches que vienen en el sur
 
     def no_cars_NORTH(self): #No hay coches dentro del tunel que vengan del NORTE
-        return self.car_tunnel_NORTH.value == 0
+        return self.car_NORTH.value == 0
    
     def no_cars_SOUTH(self): #No hay coches dentro del tunel que vengan del SUR
-        return self.car_tunnel_SOUTH.value == 0
+        return self.car_SOUTH.value == 0
 
-    """
-    Un coche del Sur quiere entrar, entonces espera a que no haya coches del norte dentro del tunel 
-    El semaforo de los coches del norte está bloqueda hasta que no haya coches dentro del tunel
-    Le sumamos 1 a car_tunnel_SOUTH para decir que entra en el túnel
-    """
-    def wants_enter_SOUTH(self):
-        self.mutex.acquire()
-        self.sem_NORTH.wait_for(self.no_cars_NORTH)
-        self.car_tunnel_SOUTH.value += 1
+#avisa de que quiere entrar desde el sur, se asegura de que no vienen coches del norte y entonces los deja pasar
+    def wants_enter_SOUTH(self): 
+        self.mutex.acquire()    
+        self.no_inside_NORTH.wait_for(self.no_cars_NORTH)
+        self.car_SOUTH.value += 1
         self.mutex.release()
         
-    def leaves_tunnel_SOUTH(self):
+#avisa de que los coches del sur han salido del tunel     
+    def leaves_tunnel_SOUTH(self): 
         self.mutex.acquire()
-        self.car_tunnel_SOUTH.value -= 1
-        self.sem_SOUTH.notify_all()
+        self.car_SOUTH.value -= 1
+        self.no_inside_SOUTH.notify_all()
         self.mutex.release()
        
         
-       
+#avisa de que quiere entrar desde el norte, se asegura de que no vienen coches del sur y entonces los deja pasar    
     def wants_enter_NORTH(self):
         self.mutex.acquire()
-        self.sem_SOUTH.wait_for(self.no_cars_SOUTH)
-        self.car_tunnel_NORTH.value += 1
+        self.no_inside_SOUTH.wait_for(self.no_cars_SOUTH)
+        self.car_NORTH.value += 1
         self.mutex.release()
-   
+#avisa de que los coches del norte han salido del tunel    
     def leaves_tunnel_NORTH(self):
         self.mutex.acquire()
-        self.car_tunnel_NORTH.value -= 1
-        self.sem_NORTH.notify_all()
+        self.car_NORTH.value -= 1
+        self.no_inside_NORTH.notify_all()
         self.mutex.release()
    
     
-   
+#funcion general  para entrar depdendiendo de la direccion 
     def wants_enter(self, direction):
         if direction == NORTH:
             self.wants_enter_NORTH()
         else:
             self.wants_enter_SOUTH()
-       
+#funcion general para salir dependediendo de la direccion       
     def leaves_tunnel(self,direction):
         if direction == NORTH:
             self.leaves_tunnel_NORTH()
